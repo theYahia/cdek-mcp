@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "cdek": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@theyahia/cdek-mcp"
+      ],
+      "env": {
+        "CDEK_CLIENT_ID": "YOUR_CLIENT_ID",
+        "CDEK_CLIENT_SECRET": "YOUR_CLIENT_SECRET",
+        "CDEK_SANDBOX": "true"
+      }
+    }
+  }
+}
