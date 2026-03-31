@@ -1,15 +1,13 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { CdekOrder } from "../types.js";
 
-const client = new CdekClient();
-
-export const trackSchema = z.object({
+export const trackShipmentSchema = z.object({
   cdek_number: z.string().describe("Номер отправления СДЭК (например 1234567890)"),
 });
 
-export async function handleTrack(params: z.infer<typeof trackSchema>): Promise<string> {
-  const result = (await client.get("/orders", { cdek_number: params.cdek_number })) as CdekOrder;
+export async function handleTrackShipment(params: z.infer<typeof trackShipmentSchema>): Promise<string> {
+  const result = (await getClient().get("/orders", { cdek_number: params.cdek_number })) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");

@@ -1,7 +1,7 @@
 {
   "name": "@theyahia/cdek-mcp",
-  "version": "1.0.1",
-  "description": "MCP server for CDEK delivery API — tariff calculation, order creation, tracking, cities, PVZ pickup points. 6 tools with OAuth2 token management.",
+  "version": "1.1.0",
+  "description": "MCP server for CDEK delivery API — tariff calculation, order management, tracking, barcode generation, cities & delivery points. 8 tools with OAuth2 token management.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -17,16 +17,21 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^5.2.1",
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.2"
   },
   "publishConfig": {
     "access": "public"
@@ -39,11 +44,14 @@
     "claude",
     "ai",
     "russian-api",
+    "russian-mcp",
     "cdek",
     "delivery",
     "shipping",
     "logistics",
-    "tracking"
+    "tracking",
+    "barcode",
+    "e-commerce"
   ],
   "license": "MIT",
   "repository": {

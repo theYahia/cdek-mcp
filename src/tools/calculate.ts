@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { TariffResult } from "../types.js";
-
-const client = new CdekClient();
 
 export const calculateTariffSchema = z.object({
   from_location: z.object({
@@ -25,7 +23,7 @@ export const calculateTariffSchema = z.object({
 });
 
 export async function handleCalculateTariff(params: z.infer<typeof calculateTariffSchema>): Promise<string> {
-  const result = (await client.post("/calculator/tariff", params)) as TariffResult;
+  const result = (await getClient().post("/calculator/tariff", params)) as TariffResult;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");

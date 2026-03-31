@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { CdekOrder } from "../types.js";
-
-const client = new CdekClient();
 
 export const createOrderSchema = z.object({
   tariff_code: z.number().describe("Код тарифа СДЭК"),
@@ -47,8 +45,12 @@ export const getOrderSchema = z.object({
   uuid: z.string().describe("UUID заказа СДЭК"),
 });
 
+export const deleteOrderSchema = z.object({
+  uuid: z.string().describe("UUID заказа СДЭК для удаления"),
+});
+
 export async function handleCreateOrder(params: z.infer<typeof createOrderSchema>): Promise<string> {
-  const result = (await client.post("/orders", params)) as CdekOrder;
+  const result = (await getClient().post("/orders", params)) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
@@ -64,7 +66,7 @@ export async function handleCreateOrder(params: z.infer<typeof createOrderSchema
 }
 
 export async function handleGetOrder(params: z.infer<typeof getOrderSchema>): Promise<string> {
-  const result = (await client.get(`/orders/${params.uuid}`)) as CdekOrder;
+  const result = (await getClient().get(`/orders/${params.uuid}`)) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
@@ -81,5 +83,20 @@ export async function handleGetOrder(params: z.infer<typeof getOrderSchema>): Pr
       дата: s.date_time,
       город: s.city,
     })),
+  }, null, 2);
+}
+
+export async function handleDeleteOrder(params: z.infer<typeof deleteOrderSchema>): Promise<string> {
+  const result = (await getClient().delete(`/orders/${params.uuid}`)) as CdekOrder;
+
+  if (result.errors && result.errors.length > 0) {
+    const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
+    return `Ошибка удаления заказа: ${msgs}`;
+  }
+
+  return JSON.stringify({
+    uuid: result.entity?.uuid,
+    статус_запроса: result.requests?.[0]?.state,
+    сообщение: "Заказ удалён.",
   }, null, 2);
 }

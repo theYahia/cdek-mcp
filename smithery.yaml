@@ -1,0 +1,31 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - CDEK_CLIENT_ID
+      - CDEK_CLIENT_SECRET
+    properties:
+      CDEK_CLIENT_ID:
+        type: string
+        title: CDEK Client ID
+        description: Client ID from CDEK dashboard (Integration > API Keys)
+      CDEK_CLIENT_SECRET:
+        type: string
+        title: CDEK Client Secret
+        description: Client Secret from CDEK dashboard (Integration > API Keys)
+      CDEK_SANDBOX:
+        type: boolean
+        title: Sandbox mode
+        description: Use CDEK sandbox environment (api.edu.cdek.ru) instead of production
+        default: false
+  commandFunction: |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/index.js'],
+      env: {
+        CDEK_CLIENT_ID: config.CDEK_CLIENT_ID,
+        CDEK_CLIENT_SECRET: config.CDEK_CLIENT_SECRET,
+        ...(config.CDEK_SANDBOX ? { CDEK_SANDBOX: 'true' } : {})
+      }
+    })
