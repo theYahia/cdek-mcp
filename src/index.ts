@@ -7,7 +7,7 @@ import { getCitiesSchema, handleGetCities, listPvzSchema, handleListPvz } from "
 import { createOrderSchema, handleCreateOrder, getOrderSchema, handleGetOrder } from "./tools/orders.js";
 import { trackSchema, handleTrack } from "./tools/tracking.js";
 
-const server = new McpServer({ name: "cdek-mcp", version: "1.0.0" });
+const server = new McpServer({ name: "cdek-mcp", version: "1.0.1" });
 
 server.tool("calculate_tariff", "Расчёт стоимости и сроков доставки СДЭК по тарифу, маршруту и параметрам груза.", calculateTariffSchema.shape,
   async (params) => ({ content: [{ type: "text", text: await handleCalculateTariff(params) }] }));
