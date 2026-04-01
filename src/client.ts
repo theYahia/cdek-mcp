@@ -101,6 +101,10 @@ export class CdekClient {
     return this.request("POST", path, body);
   }
 
+  async delete(path: string): Promise<unknown> {
+    return this.request("DELETE", path);
+  }
+
   private async request(method: string, path: string, body?: unknown): Promise<unknown> {
     const url = `${this.baseUrl}${path}`;
 
@@ -129,7 +133,9 @@ export class CdekClient {
         }
 
         if (response.ok) {
-          return response.json();
+          const text = await response.text();
+          if (!text) return {};
+          return JSON.parse(text);
         }
 
         const errorBody = await response.text();

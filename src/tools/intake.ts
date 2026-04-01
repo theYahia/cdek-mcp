@@ -1,0 +1,72 @@
+import { z } from "zod";
+import { CdekClient } from "../client.js";
+import type { CdekIntake } from "../types.js";
+
+const client = new CdekClient();
+
+export const createIntakeSchema = z.object({
+  order_uuid: z.string().describe("UUID заказа для вызова курьера"),
+  intake_date: z.string().describe("Дата забора (YYYY-MM-DD)"),
+  intake_time_from: z.string().describe("Время забора с (HH:MM)"),
+  intake_time_to: z.string().describe("Время забора до (HH:MM)"),
+  name: z.string().optional().describe("ФИО отправителя"),
+  phone: z.string().optional().describe("Телефон отправителя"),
+  comment: z.string().optional().describe("Комментарий для курьера"),
+});
+
+export const getIntakeSchema = z.object({
+  uuid: z.string().describe("UUID заявки на вызов курьера"),
+});
+
+export async function handleCreateIntake(params: z.infer<typeof createIntakeSchema>): Promise<string> {
+  const body: Record<string, unknown> = {
+    order_uuid: params.order_uuid,
+    intake_date: params.intake_date,
+    intake_time_from: params.intake_time_from,
+    intake_time_to: params.intake_time_to,
+  };
+  if (params.name) body.name = params.name;
+  if (params.phone) body.phone = params.phone;
+  if (params.comment) body.comment = params.comment;
+
+  const result = (await client.post("/intakes", body)) as CdekIntake;
+
+  if (result.errors && result.errors.length > 0) {
+    const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
+    return `Ошибка создания заявки на курьера: ${msgs}`;
+  }
+
+  return JSON.stringify({
+    uuid: result.entity?.uuid,
+    order_uuid: result.entity?.order_uuid,
+    дата_забора: result.entity?.intake_date,
+    время_с: result.entity?.intake_time_from,
+    время_до: result.entity?.intake_time_to,
+    статус_запроса: result.requests?.[0]?.state,
+    сообщение: "Заявка на вызов курьера создана.",
+  }, null, 2);
+}
+
+export async function handleGetIntake(params: z.infer<typeof getIntakeSchema>): Promise<string> {
+  const result = (await client.get(`/intakes/${params.uuid}`)) as CdekIntake;
+
+  if (result.errors && result.errors.length > 0) {
+    const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
+    return `Ошибка: ${msgs}`;
+  }
+
+  const entity = result.entity;
+  return JSON.stringify({
+    uuid: entity?.uuid,
+    order_uuid: entity?.order_uuid,
+    номер_сдэк: entity?.cdek_number,
+    дата_забора: entity?.intake_date,
+    время_с: entity?.intake_time_from,
+    время_до: entity?.intake_time_to,
+    статусы: entity?.statuses?.map(s => ({
+      код: s.code,
+      название: s.name,
+      дата: s.date_time,
+    })),
+  }, null, 2);
+}

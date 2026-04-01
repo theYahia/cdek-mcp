@@ -5,11 +5,21 @@ import type { CdekOrder } from "../types.js";
 const client = new CdekClient();
 
 export const trackSchema = z.object({
-  cdek_number: z.string().describe("Номер отправления СДЭК (например 1234567890)"),
+  cdek_number: z.string().optional().describe("Номер отправления СДЭК (например 1234567890)"),
+  order_uuid: z.string().optional().describe("UUID заказа СДЭК"),
 });
 
 export async function handleTrack(params: z.infer<typeof trackSchema>): Promise<string> {
-  const result = (await client.get("/orders", { cdek_number: params.cdek_number })) as CdekOrder;
+  if (!params.cdek_number && !params.order_uuid) {
+    return "Ошибка: укажите cdek_number или order_uuid.";
+  }
+
+  let result: CdekOrder;
+  if (params.order_uuid) {
+    result = (await client.get(`/orders/${params.order_uuid}`)) as CdekOrder;
+  } else {
+    result = (await client.get("/orders", { cdek_number: params.cdek_number! })) as CdekOrder;
+  }
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
@@ -18,7 +28,7 @@ export async function handleTrack(params: z.infer<typeof trackSchema>): Promise<
 
   const entity = result.entity;
   if (!entity) {
-    return `Отправление ${params.cdek_number} не найдено.`;
+    return `Отправление не найдено.`;
   }
 
   const statuses = entity.statuses ?? [];

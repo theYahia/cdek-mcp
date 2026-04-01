@@ -40,11 +40,19 @@ export const createOrderSchema = z.object({
       amount: z.number().int().positive().describe("Количество"),
     })).optional().describe("Вложения (для международных обязательно)"),
   })).min(1).describe("Список мест"),
+  services: z.array(z.object({
+    code: z.string().describe("Код доп. услуги"),
+    parameter: z.string().optional().describe("Параметр услуги"),
+  })).optional().describe("Дополнительные услуги"),
   comment: z.string().optional().describe("Комментарий к заказу"),
 });
 
 export const getOrderSchema = z.object({
   uuid: z.string().describe("UUID заказа СДЭК"),
+});
+
+export const deleteOrderSchema = z.object({
+  uuid: z.string().describe("UUID заказа СДЭК для удаления"),
 });
 
 export async function handleCreateOrder(params: z.infer<typeof createOrderSchema>): Promise<string> {
@@ -75,11 +83,28 @@ export async function handleGetOrder(params: z.infer<typeof getOrderSchema>): Pr
   return JSON.stringify({
     uuid: entity?.uuid,
     номер_сдэк: entity?.cdek_number,
+    тип: entity?.type,
+    возврат: entity?.is_return,
     статусы: entity?.statuses?.map(s => ({
       код: s.code,
       название: s.name,
       дата: s.date_time,
       город: s.city,
     })),
+  }, null, 2);
+}
+
+export async function handleDeleteOrder(params: z.infer<typeof deleteOrderSchema>): Promise<string> {
+  const result = (await client.delete(`/orders/${params.uuid}`)) as CdekOrder;
+
+  if (result.errors && result.errors.length > 0) {
+    const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
+    return `Ошибка удаления: ${msgs}`;
+  }
+
+  return JSON.stringify({
+    uuid: result.entity?.uuid,
+    статус_запроса: result.requests?.[0]?.state,
+    сообщение: "Заказ удалён.",
   }, null, 2);
 }
