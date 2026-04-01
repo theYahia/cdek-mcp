@@ -3,7 +3,7 @@ import type { CdekTokenResponse, CdekError } from "./types.js";
 const TIMEOUT = 15_000;
 const MAX_RETRIES = 3;
 
-class TokenManager {
+export class TokenManager {
   private token: string | null = null;
   private expiresAt = 0;
   private refreshPromise: Promise<string> | null = null;
@@ -33,7 +33,7 @@ class TokenManager {
   }
 
   private async refresh(): Promise<string> {
-    const url = `${this.baseUrl}/oauth/token?parameters`;
+    const url = `${this.baseUrl}/oauth/token`;
     const body = new URLSearchParams({
       grant_type: "client_credentials",
       client_id: this.clientId,
@@ -62,6 +62,11 @@ class TokenManager {
   invalidate(): void {
     this.token = null;
     this.expiresAt = 0;
+  }
+
+  /** Expose expiry for testing */
+  getExpiresAt(): number {
+    return this.expiresAt;
   }
 }
 
@@ -133,9 +138,7 @@ export class CdekClient {
         }
 
         if (response.ok) {
-          const text = await response.text();
-          if (!text) return {};
-          return JSON.parse(text);
+          return response.json();
         }
 
         const errorBody = await response.text();
@@ -176,4 +179,11 @@ export class CdekClient {
 
     throw new Error("СДЭК: все попытки исчерпаны");
   }
+}
+
+/** Lazy singleton — created on first use, not at import time */
+let _client: CdekClient | null = null;
+export function getClient(): CdekClient {
+  if (!_client) _client = new CdekClient();
+  return _client;
 }

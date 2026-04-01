@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { CdekCity, CdekDeliveryPoint, CdekRegion } from "../types.js";
-
-const client = new CdekClient();
 
 export const getCitiesSchema = z.object({
   city: z.string().optional().describe("Название города (поиск по подстроке)"),
@@ -41,7 +39,7 @@ export async function handleGetCities(params: z.infer<typeof getCitiesSchema>): 
   query.size = String(params.size);
   query.page = String(params.page);
 
-  const result = (await client.get("/location/cities", query)) as CdekCity[];
+  const result = (await getClient().get("/location/cities", query)) as CdekCity[];
 
   if (!Array.isArray(result) || result.length === 0) {
     return "Города не найдены по заданным параметрам.";
@@ -63,7 +61,7 @@ export async function handleGetRegions(params: z.infer<typeof getRegionsSchema>)
   query.size = String(params.size);
   query.page = String(params.page);
 
-  const result = (await client.get("/location/regions", query)) as CdekRegion[];
+  const result = (await getClient().get("/location/regions", query)) as CdekRegion[];
 
   if (!Array.isArray(result) || result.length === 0) {
     return "Регионы не найдены по заданным параметрам.";
@@ -89,7 +87,7 @@ export async function handleListDeliveryPoints(params: z.infer<typeof listDelive
   query.size = String(params.size);
   query.page = String(params.page);
 
-  const result = (await client.get("/deliverypoints", query)) as CdekDeliveryPoint[];
+  const result = (await getClient().get("/deliverypoints", query)) as CdekDeliveryPoint[];
 
   if (!Array.isArray(result) || result.length === 0) {
     return "Пункты выдачи не найдены по заданным параметрам.";

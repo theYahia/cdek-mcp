@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { CdekWebhook } from "../types.js";
-
-const client = new CdekClient();
 
 export const createWebhookSchema = z.object({
   url: z.string().url().describe("URL для получения уведомлений (HTTPS)"),
@@ -10,7 +8,7 @@ export const createWebhookSchema = z.object({
 });
 
 export async function handleCreateWebhook(params: z.infer<typeof createWebhookSchema>): Promise<string> {
-  const result = (await client.post("/webhooks", params)) as CdekWebhook;
+  const result = (await getClient().post("/webhooks", params)) as CdekWebhook;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");

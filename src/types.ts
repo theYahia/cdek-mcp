@@ -30,21 +30,6 @@ export interface TariffResult {
   errors?: CdekError[];
 }
 
-export interface TariffListResult {
-  tariff_codes: Array<{
-    tariff_code: number;
-    tariff_name: string;
-    tariff_description?: string;
-    delivery_mode: number;
-    delivery_sum: number;
-    period_min: number;
-    period_max: number;
-    calendar_min?: number;
-    calendar_max?: number;
-  }>;
-  errors?: CdekError[];
-}
-
 export interface CdekOrder {
   entity?: {
     uuid: string;
@@ -79,6 +64,21 @@ export interface CdekCity {
   sub_region?: string;
 }
 
+export interface TariffListResult {
+  tariff_codes: Array<{
+    tariff_code: number;
+    tariff_name: string;
+    tariff_description?: string;
+    delivery_mode: number;
+    delivery_sum: number;
+    period_min: number;
+    period_max: number;
+    calendar_min?: number;
+    calendar_max?: number;
+  }>;
+  errors?: CdekError[];
+}
+
 export interface CdekRegion {
   region: string;
   region_code?: number;
@@ -105,8 +105,6 @@ export interface CdekDeliveryPoint {
   is_dressing_room: boolean;
   have_cashless: boolean;
   have_cash: boolean;
-  nearest_station?: string;
-  nearest_metro_station?: string;
 }
 
 export interface CdekIntake {

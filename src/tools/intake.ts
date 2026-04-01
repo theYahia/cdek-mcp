@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { CdekIntake } from "../types.js";
-
-const client = new CdekClient();
 
 export const createIntakeSchema = z.object({
   order_uuid: z.string().describe("UUID заказа для вызова курьера"),
@@ -29,7 +27,7 @@ export async function handleCreateIntake(params: z.infer<typeof createIntakeSche
   if (params.phone) body.phone = params.phone;
   if (params.comment) body.comment = params.comment;
 
-  const result = (await client.post("/intakes", body)) as CdekIntake;
+  const result = (await getClient().post("/intakes", body)) as CdekIntake;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
@@ -48,7 +46,7 @@ export async function handleCreateIntake(params: z.infer<typeof createIntakeSche
 }
 
 export async function handleGetIntake(params: z.infer<typeof getIntakeSchema>): Promise<string> {
-  const result = (await client.get(`/intakes/${params.uuid}`)) as CdekIntake;
+  const result = (await getClient().get(`/intakes/${params.uuid}`)) as CdekIntake;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");

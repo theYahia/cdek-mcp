@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { CdekClient } from "../client.js";
+import { getClient } from "../client.js";
 import type { CdekOrder } from "../types.js";
-
-const client = new CdekClient();
 
 export const createOrderSchema = z.object({
   tariff_code: z.number().describe("Код тарифа СДЭК"),
@@ -40,10 +38,6 @@ export const createOrderSchema = z.object({
       amount: z.number().int().positive().describe("Количество"),
     })).optional().describe("Вложения (для международных обязательно)"),
   })).min(1).describe("Список мест"),
-  services: z.array(z.object({
-    code: z.string().describe("Код доп. услуги"),
-    parameter: z.string().optional().describe("Параметр услуги"),
-  })).optional().describe("Дополнительные услуги"),
   comment: z.string().optional().describe("Комментарий к заказу"),
 });
 
@@ -56,7 +50,7 @@ export const deleteOrderSchema = z.object({
 });
 
 export async function handleCreateOrder(params: z.infer<typeof createOrderSchema>): Promise<string> {
-  const result = (await client.post("/orders", params)) as CdekOrder;
+  const result = (await getClient().post("/orders", params)) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
@@ -72,7 +66,7 @@ export async function handleCreateOrder(params: z.infer<typeof createOrderSchema
 }
 
 export async function handleGetOrder(params: z.infer<typeof getOrderSchema>): Promise<string> {
-  const result = (await client.get(`/orders/${params.uuid}`)) as CdekOrder;
+  const result = (await getClient().get(`/orders/${params.uuid}`)) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
@@ -83,8 +77,6 @@ export async function handleGetOrder(params: z.infer<typeof getOrderSchema>): Pr
   return JSON.stringify({
     uuid: entity?.uuid,
     номер_сдэк: entity?.cdek_number,
-    тип: entity?.type,
-    возврат: entity?.is_return,
     статусы: entity?.statuses?.map(s => ({
       код: s.code,
       название: s.name,
@@ -95,11 +87,11 @@ export async function handleGetOrder(params: z.infer<typeof getOrderSchema>): Pr
 }
 
 export async function handleDeleteOrder(params: z.infer<typeof deleteOrderSchema>): Promise<string> {
-  const result = (await client.delete(`/orders/${params.uuid}`)) as CdekOrder;
+  const result = (await getClient().delete(`/orders/${params.uuid}`)) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {
     const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
-    return `Ошибка удаления: ${msgs}`;
+    return `Ошибка удаления заказа: ${msgs}`;
   }
 
   return JSON.stringify({
