@@ -4,9 +4,9 @@
 [![CI](https://github.com/theYahia/cdek-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/theYahia/cdek-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-MCP server for the CDEK delivery API (v2). 14 tools covering the full delivery lifecycle: tariff calculation, order management, shipment tracking, location search, courier pickup, barcode/receipt generation, and webhooks.
+MCP server for the CDEK delivery API (v2). **16 tools** covering the full delivery lifecycle: tariff calculation, order management, shipment tracking, location search, courier pickup, barcode/receipt generation, and webhooks.
 
-## Tools (14)
+## Tools (16)
 
 ### Tariffs
 | Tool | Description |
@@ -20,6 +20,7 @@ MCP server for the CDEK delivery API (v2). 14 tools covering the full delivery l
 | `create_order` | Create a delivery order with sender, recipient, packages |
 | `get_order` | Get order details and status by UUID |
 | `delete_order` | Cancel/delete an order by UUID |
+| `list_orders` | Search/filter orders by date range, IM number, or CDEK waybill |
 
 ### Tracking
 | Tool | Description |
@@ -49,6 +50,7 @@ MCP server for the CDEK delivery API (v2). 14 tools covering the full delivery l
 | Tool | Description |
 |------|-------------|
 | `create_webhook` | Register webhook for order status updates or delivery photos |
+| `delete_webhook` | Remove a webhook subscription by UUID |
 
 ## Quick Start
 
