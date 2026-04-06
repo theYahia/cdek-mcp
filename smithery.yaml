@@ -8,24 +8,18 @@ startCommand:
     properties:
       CDEK_CLIENT_ID:
         type: string
-        title: CDEK Client ID
-        description: Client ID from CDEK dashboard (Integration > API Keys)
+        title: "CDEK Client ID"
+        description: "OAuth2 Client ID for CDEK API. Get it from your CDEK personal account → Integration settings."
       CDEK_CLIENT_SECRET:
         type: string
-        title: CDEK Client Secret
-        description: Client Secret from CDEK dashboard (Integration > API Keys)
-      CDEK_SANDBOX:
-        type: boolean
-        title: Sandbox mode
-        description: Use CDEK sandbox environment (api.edu.cdek.ru) instead of production
-        default: false
-  commandFunction: |-
+        title: "CDEK Client Secret"
+        description: "OAuth2 Client Secret for CDEK API. Get it from your CDEK personal account → Integration settings."
+  commandFunction:
+    |-
     (config) => ({
-      command: 'node',
-      args: ['dist/index.js'],
+      command: 'npx',
+      args: ['-y', '@theyahia/cdek-mcp'],
       env: {
-        CDEK_CLIENT_ID: config.CDEK_CLIENT_ID,
-        CDEK_CLIENT_SECRET: config.CDEK_CLIENT_SECRET,
-        ...(config.CDEK_SANDBOX ? { CDEK_SANDBOX: 'true' } : {})
+        ...config
       }
     })

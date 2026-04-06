@@ -3,151 +3,206 @@
 /**
  * @theyahia/cdek-mcp — MCP server for CDEK delivery API
  *
- * 14 tools: calculate_tariff, calculate_tariff_list, create_order, get_order,
- * delete_order, track_shipment, get_cities, get_regions, list_delivery_points,
+ * 16 tools: calculate_tariff, calculate_tariff_list, create_order, get_order, delete_order,
+ * list_orders, track_shipment, list_delivery_points, get_cities, get_regions,
  * generate_barcode, create_courier_pickup, get_courier_pickup, print_receipt,
- * create_webhook.
+ * create_webhook, delete_webhook.
  *
- * Transports:
- *   - stdio (default)  — for Claude Desktop / Cursor / Windsurf
- *   - Streamable HTTP  — --http flag or HTTP_PORT env
+ * Transports: stdio (default), Streamable HTTP (--http or HTTP_PORT)
  */
 
-import { createServer } from "./server.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { createLogger, runServer, withErrorHandling } from "@theyahia/mcp-core";
+import {
+  calculateTariffSchema, handleCalculateTariff,
+  calculateTariffListSchema, handleCalculateTariffList,
+} from "./tools/calculate.js";
+import {
+  getCitiesSchema, handleGetCities,
+  listDeliveryPointsSchema, handleListDeliveryPoints,
+  getRegionsSchema, handleGetRegions,
+} from "./tools/locations.js";
+import {
+  createOrderSchema, handleCreateOrder,
+  getOrderSchema, handleGetOrder,
+  deleteOrderSchema, handleDeleteOrder,
+  listOrdersSchema, handleListOrders,
+} from "./tools/orders.js";
+import { trackShipmentSchema, handleTrackShipment } from "./tools/tracking.js";
+import { generateBarcodeSchema, handleGenerateBarcode } from "./tools/barcode.js";
+import {
+  createIntakeSchema, handleCreateIntake,
+  getIntakeSchema, handleGetIntake,
+} from "./tools/intake.js";
+import { printReceiptSchema, handlePrintReceipt } from "./tools/print.js";
+import {
+  createWebhookSchema, handleCreateWebhook,
+  deleteWebhookSchema, handleDeleteWebhook,
+} from "./tools/webhooks.js";
 
-const useHttp = process.argv.includes("--http") || !!process.env.HTTP_PORT;
+const logger = createLogger("cdek-mcp");
 
-async function main() {
-  if (useHttp) {
-    await startHttpServer();
-  } else {
-    await startStdioServer();
-  }
-}
+function createServer(): McpServer {
+  const server = new McpServer({
+    name: "cdek-mcp",
+    version: "2.1.0",
+  });
 
-async function startStdioServer() {
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("[cdek-mcp] Сервер запущен (stdio). 14 инструментов.");
-}
-
-async function startHttpServer() {
-  const { randomUUID } = await import("node:crypto");
-  const { StreamableHTTPServerTransport } = await import(
-    "@modelcontextprotocol/sdk/server/streamableHttp.js"
+  server.tool(
+    "calculate_tariff",
+    "Расчёт стоимости и сроков доставки СДЭК по конкретному тарифу, маршруту и параметрам груза. Используйте для предварительной оценки перед созданием заказа. Требует код тарифа (136=склад-склад, 137=склад-дверь, 138=дверь-склад, 139=дверь-дверь). Для поиска кода города используйте get_cities.",
+    calculateTariffSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleCalculateTariff(params) }],
+    })),
   );
 
-  let express: any;
-  try {
-    express = (await import("express")).default;
-  } catch {
-    console.error(
-      "[cdek-mcp] express is required for HTTP transport. Install it: npm i express",
-    );
-    process.exit(1);
-  }
+  server.tool(
+    "calculate_tariff_list",
+    "Расчёт стоимости доставки СДЭК по всем доступным тарифам для маршрута. Используйте когда нужно показать клиенту все варианты доставки с ценами и сроками, не зная заранее код тарифа.",
+    calculateTariffListSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleCalculateTariffList(params) }],
+    })),
+  );
 
-  const port = parseInt(process.env.HTTP_PORT ?? "3000", 10);
-  const app = express();
-  app.use(express.json());
+  server.tool(
+    "create_order",
+    "Создание заказа на доставку СДЭК с указанием отправителя, получателя и мест. Перед созданием рекомендуется рассчитать стоимость через calculate_tariff. После создания заказ можно отслеживать через get_order или track_shipment.",
+    createOrderSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleCreateOrder(params) }],
+    })),
+  );
 
-  // CORS
-  app.use((_req: any, res: any, next: any) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, mcp-session-id");
-    if (_req.method === "OPTIONS") return res.sendStatus(204);
-    next();
-  });
+  server.tool(
+    "get_order",
+    "Получение полной информации о заказе СДЭК по UUID. Возвращает статусы, номер накладной и детали доставки. Используйте после create_order для проверки обработки заказа.",
+    getOrderSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleGetOrder(params) }],
+    })),
+  );
 
-  // Health check
-  app.get("/health", (_req: any, res: any) => {
-    res.json({ status: "ok", server: "cdek-mcp", tools: 14 });
-  });
+  server.tool(
+    "delete_order",
+    "Удаление заказа СДЭК по UUID. Работает только для заказов, ещё не переданных в курьерскую службу. После удаления заказ нельзя восстановить.",
+    deleteOrderSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleDeleteOrder(params) }],
+    })),
+  );
 
-  // Session management
-  const transports: Record<string, InstanceType<typeof StreamableHTTPServerTransport>> = {};
+  server.tool(
+    "list_orders",
+    "Поиск и фильтрация заказов СДЭК по дате, номеру ИМ или накладной СДЭК. Поддерживает пагинацию. Используйте для получения списка заказов за период или поиска конкретного заказа.",
+    listOrdersSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleListOrders(params) }],
+    })),
+  );
 
-  const { isInitializeRequest } = await import("@modelcontextprotocol/sdk/types.js");
+  server.tool(
+    "track_shipment",
+    "Отслеживание отправления СДЭК по номеру накладной (cdek_number). Возвращает полную историю статусов с датами и городами. Если известен только UUID заказа — используйте get_order.",
+    trackShipmentSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleTrackShipment(params) }],
+    })),
+  );
 
-  // MCP POST
-  app.post("/mcp", async (req: any, res: any) => {
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
+  server.tool(
+    "list_delivery_points",
+    "Поиск пунктов выдачи (ПВЗ) и постаматов СДЭК по городу или индексу. Возвращает адрес, время работы, наличие примерочной и способы оплаты.",
+    listDeliveryPointsSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleListDeliveryPoints(params) }],
+    })),
+  );
 
-    try {
-      if (sessionId && transports[sessionId]) {
-        await transports[sessionId].handleRequest(req, res, req.body);
-        return;
-      }
+  server.tool(
+    "get_cities",
+    "Поиск городов в справочнике СДЭК по названию, индексу или стране. Возвращает код города, регион и ФИАС. Используйте для получения city_code перед вызовом calculate_tariff или create_order.",
+    getCitiesSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleGetCities(params) }],
+    })),
+  );
 
-      if (!sessionId && isInitializeRequest(req.body)) {
-        const transport = new StreamableHTTPServerTransport({
-          sessionIdGenerator: () => randomUUID(),
-          onsessioninitialized: (sid: string) => {
-            transports[sid] = transport;
-          },
-        });
-        transport.onclose = () => {
-          const sid = transport.sessionId;
-          if (sid) delete transports[sid];
-        };
-        const server = createServer();
-        await server.connect(transport);
-        await transport.handleRequest(req, res, req.body);
-        return;
-      }
+  server.tool(
+    "get_regions",
+    "Получение справочника регионов СДЭК. Поддерживает фильтрацию по стране и названию региона, пагинацию. Используйте для построения иерархии локаций или фильтрации городов по региону.",
+    getRegionsSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleGetRegions(params) }],
+    })),
+  );
 
-      res.status(400).json({
-        jsonrpc: "2.0",
-        error: { code: -32000, message: "Bad Request: No valid session ID" },
-        id: null,
-      });
-    } catch (error) {
-      console.error("[cdek-mcp] HTTP error:", error);
-      if (!res.headersSent) {
-        res.status(500).json({
-          jsonrpc: "2.0",
-          error: { code: -32603, message: "Internal server error" },
-          id: null,
-        });
-      }
-    }
-  });
+  server.tool(
+    "generate_barcode",
+    "Генерация штрихкода (этикетки) для заказа СДЭК по UUID. Поддерживает форматы A4, A5, A6 и до 10 копий. Ссылка на PDF появится в результатах get_order.",
+    generateBarcodeSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleGenerateBarcode(params) }],
+    })),
+  );
 
-  // MCP GET (SSE streams)
-  app.get("/mcp", async (req: any, res: any) => {
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    if (!sessionId || !transports[sessionId]) {
-      return res.status(400).send("Invalid or missing session ID");
-    }
-    await transports[sessionId].handleRequest(req, res);
-  });
+  server.tool(
+    "create_courier_pickup",
+    "Создание заявки на вызов курьера СДЭК для забора отправления. Требует UUID заказа и временной интервал. После создания можно отслеживать статус заявки через get_courier_pickup.",
+    createIntakeSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleCreateIntake(params) }],
+    })),
+  );
 
-  // MCP DELETE (session termination)
-  app.delete("/mcp", async (req: any, res: any) => {
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    if (!sessionId || !transports[sessionId]) {
-      return res.status(400).send("Invalid or missing session ID");
-    }
-    await transports[sessionId].handleRequest(req, res);
-  });
+  server.tool(
+    "get_courier_pickup",
+    "Получение статуса заявки на вызов курьера СДЭК по UUID заявки. Возвращает дату, время и историю статусов заявки.",
+    getIntakeSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleGetIntake(params) }],
+    })),
+  );
 
-  app.listen(port, () => {
-    console.error(`[cdek-mcp] HTTP server listening on port ${port}. 14 tools.`);
-  });
+  server.tool(
+    "print_receipt",
+    "Печать квитанции (накладной) для заказа СДЭК в формате PDF. Опрашивает API до готовности файла (до 10 секунд) и возвращает ссылку для скачивания.",
+    printReceiptSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handlePrintReceipt(params) }],
+    })),
+  );
 
-  process.on("SIGINT", async () => {
-    for (const sid of Object.keys(transports)) {
-      await transports[sid].close();
-      delete transports[sid];
-    }
-    process.exit(0);
-  });
+  server.tool(
+    "create_webhook",
+    "Подписка на вебхуки СДЭК для получения уведомлений о смене статуса заказов (ORDER_STATUS) или готовности фото (DOWNLOAD_PHOTO). СДЭК будет отправлять POST-запросы на указанный HTTPS URL.",
+    createWebhookSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleCreateWebhook(params) }],
+    })),
+  );
+
+  server.tool(
+    "delete_webhook",
+    "Удаление подписки на вебхуки СДЭК по UUID вебхука. Используйте для отключения уведомлений или смены URL получателя (удалить старый + создать новый).",
+    deleteWebhookSchema.shape,
+    withErrorHandling(async (params) => ({
+      content: [{ type: "text", text: await handleDeleteWebhook(params) }],
+    })),
+  );
+
+  return server;
 }
 
-main().catch((error) => {
-  console.error("[cdek-mcp] Ошибка:", error);
+runServer(createServer, {
+  name: "cdek-mcp",
+  version: "2.1.0",
+  toolCount: 16,
+  logger,
+}).catch((error) => {
+  logger.error("Fatal error", {
+    error: error instanceof Error ? error.message : String(error),
+  });
   process.exit(1);
 });

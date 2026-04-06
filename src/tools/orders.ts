@@ -49,6 +49,37 @@ export const deleteOrderSchema = z.object({
   uuid: z.string().describe("UUID заказа СДЭК для удаления"),
 });
 
+export const listOrdersSchema = z.object({
+  date_invoice_from: z.string().optional()
+    .describe("Дата начала периода (формат YYYY-MM-DDTHH:MM:SS±HH:MM)"),
+  date_invoice_to: z.string().optional()
+    .describe("Дата окончания периода"),
+  im_number: z.string().optional()
+    .describe("Номер заказа интернет-магазина"),
+  cdek_number: z.string().optional()
+    .describe("Накладная СДЭК"),
+  size: z.number().min(1).max(1000).default(50)
+    .describe("Кол-во записей (макс. 1000)"),
+  page: z.number().min(0).default(0)
+    .describe("Страница (0-based)"),
+});
+
+export async function handleListOrders(
+  params: z.infer<typeof listOrdersSchema>
+): Promise<string> {
+  const query: Record<string, string> = {
+    size: String(params.size),
+    page: String(params.page),
+  };
+  if (params.date_invoice_from) query.date_invoice_from = params.date_invoice_from;
+  if (params.date_invoice_to) query.date_invoice_to = params.date_invoice_to;
+  if (params.im_number) query.im_number = params.im_number;
+  if (params.cdek_number) query.cdek_number = params.cdek_number;
+
+  const result = await getClient().get("/orders", query);
+  return JSON.stringify(result, null, 2);
+}
+
 export async function handleCreateOrder(params: z.infer<typeof createOrderSchema>): Promise<string> {
   const result = (await getClient().post("/orders", params)) as CdekOrder;
 

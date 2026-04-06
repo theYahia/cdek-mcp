@@ -64,28 +64,6 @@ export interface CdekCity {
   sub_region?: string;
 }
 
-export interface TariffListResult {
-  tariff_codes: Array<{
-    tariff_code: number;
-    tariff_name: string;
-    tariff_description?: string;
-    delivery_mode: number;
-    delivery_sum: number;
-    period_min: number;
-    period_max: number;
-    calendar_min?: number;
-    calendar_max?: number;
-  }>;
-  errors?: CdekError[];
-}
-
-export interface CdekRegion {
-  region: string;
-  region_code?: number;
-  country_code: string;
-  country: string;
-}
-
 export interface CdekDeliveryPoint {
   code: string;
   name: string;
@@ -105,42 +83,4 @@ export interface CdekDeliveryPoint {
   is_dressing_room: boolean;
   have_cashless: boolean;
   have_cash: boolean;
-}
-
-export interface CdekIntake {
-  entity?: {
-    uuid: string;
-    order_uuid: string;
-    cdek_number?: string;
-    intake_date: string;
-    intake_time_from: string;
-    intake_time_to: string;
-    statuses?: CdekStatus[];
-  };
-  requests?: CdekRequest["requests"];
-  errors?: CdekError[];
-}
-
-export interface CdekWebhook {
-  entity?: {
-    uuid: string;
-    url: string;
-    type: string;
-  };
-  requests?: CdekRequest["requests"];
-  errors?: CdekError[];
-}
-
-export interface CdekPrintResponse {
-  entity?: {
-    uuid: string;
-    url?: string;
-    statuses?: Array<{
-      code: string;
-      name: string;
-      date_time: string;
-    }>;
-  };
-  requests?: CdekRequest["requests"];
-  errors?: CdekError[];
 }

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
-import type { CdekIntake } from "../types.js";
 
 export const createIntakeSchema = z.object({
   order_uuid: z.string().describe("UUID заказа для вызова курьера"),
@@ -16,7 +15,9 @@ export const getIntakeSchema = z.object({
   uuid: z.string().describe("UUID заявки на вызов курьера"),
 });
 
-export async function handleCreateIntake(params: z.infer<typeof createIntakeSchema>): Promise<string> {
+export async function handleCreateIntake(
+  params: z.infer<typeof createIntakeSchema>
+): Promise<string> {
   const body: Record<string, unknown> = {
     order_uuid: params.order_uuid,
     intake_date: params.intake_date,
@@ -27,11 +28,20 @@ export async function handleCreateIntake(params: z.infer<typeof createIntakeSche
   if (params.phone) body.phone = params.phone;
   if (params.comment) body.comment = params.comment;
 
-  const result = (await getClient().post("/intakes", body)) as CdekIntake;
+  const result = (await getClient().post("/intakes", body)) as {
+    errors?: Array<{ code: string; message: string }>;
+    entity?: {
+      uuid: string;
+      order_uuid: string;
+      intake_date: string;
+      intake_time_from: string;
+      intake_time_to: string;
+    };
+    requests?: Array<{ state: string }>;
+  };
 
-  if (result.errors && result.errors.length > 0) {
-    const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
-    return `Ошибка создания заявки на курьера: ${msgs}`;
+  if (result.errors?.length) {
+    return `Ошибка создания заявки на курьера: ${result.errors.map(e => `[${e.code}] ${e.message}`).join("; ")}`;
   }
 
   return JSON.stringify({
@@ -45,12 +55,24 @@ export async function handleCreateIntake(params: z.infer<typeof createIntakeSche
   }, null, 2);
 }
 
-export async function handleGetIntake(params: z.infer<typeof getIntakeSchema>): Promise<string> {
-  const result = (await getClient().get(`/intakes/${params.uuid}`)) as CdekIntake;
+export async function handleGetIntake(
+  params: z.infer<typeof getIntakeSchema>
+): Promise<string> {
+  const result = (await getClient().get(`/intakes/${params.uuid}`)) as {
+    errors?: Array<{ code: string; message: string }>;
+    entity?: {
+      uuid: string;
+      order_uuid: string;
+      cdek_number?: string;
+      intake_date: string;
+      intake_time_from: string;
+      intake_time_to: string;
+      statuses?: Array<{ code: string; name: string; date_time: string }>;
+    };
+  };
 
-  if (result.errors && result.errors.length > 0) {
-    const msgs = result.errors.map(e => `[${e.code}] ${e.message}`).join("; ");
-    return `Ошибка: ${msgs}`;
+  if (result.errors?.length) {
+    return `Ошибка: ${result.errors.map(e => `[${e.code}] ${e.message}`).join("; ")}`;
   }
 
   const entity = result.entity;
@@ -61,10 +83,6 @@ export async function handleGetIntake(params: z.infer<typeof getIntakeSchema>): 
     дата_забора: entity?.intake_date,
     время_с: entity?.intake_time_from,
     время_до: entity?.intake_time_to,
-    статусы: entity?.statuses?.map(s => ({
-      код: s.code,
-      название: s.name,
-      дата: s.date_time,
-    })),
+    статусы: entity?.statuses?.map(s => ({ код: s.code, название: s.name, дата: s.date_time })),
   }, null, 2);
 }

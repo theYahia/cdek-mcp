@@ -1,65 +1,39 @@
 {
   "name": "@theyahia/cdek-mcp",
-  "version": "2.0.2",
-  "description": "MCP server for CDEK — delivery, tariffs, tracking, order management (Russia)",
+  "version": "2.1.0",
+  "description": "MCP server for CDEK delivery API — 16 tools: calculate, orders, courier pickup, tracking, PVZ, print, webhooks. OAuth2 auth.",
   "type": "module",
   "main": "dist/index.js",
-  "bin": {
-    "cdek-mcp": "dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "bin": { "cdek-mcp": "dist/index.js" },
+  "files": ["dist"],
+  "engines": { "node": ">=18.0.0" },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@theyahia/mcp-core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.12.1",
     "express": "^5.2.1",
-    "zod": "^3.24.0"
+    "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.15.3",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
+    "typescript": "^5.8.3",
     "vitest": "^4.1.2"
   },
-  "publishConfig": {
-    "access": "public"
-  },
+  "publishConfig": { "access": "public" },
   "mcpName": "io.github.theYahia/cdek-mcp",
-  "keywords": [
-    "mcp",
-    "mcp-server",
-    "model-context-protocol",
-    "claude",
-    "ai",
-    "russian-api",
-    "russian-mcp",
-    "cdek",
-    "delivery",
-    "shipping",
-    "logistics",
-    "tracking",
-    "barcode",
-    "e-commerce",
-    "api",
-    "typescript"
-  ],
+  "keywords": ["mcp", "mcp-server", "model-context-protocol", "claude", "ai", "russian-api", "cdek", "delivery", "shipping", "logistics"],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/theYahia/cdek-mcp.git"
-  },
-  "homepage": "https://github.com/theYahia/cdek-mcp#readme",
-  "author": "Yahia"
+  "repository": { "type": "git", "url": "https://github.com/theYahia/mcp-servers.git", "directory": "servers/cdek" },
+  "author": "theYahia (https://github.com/theYahia)"
 }
