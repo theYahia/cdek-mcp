@@ -22,7 +22,10 @@ First release buildable and testable as a standalone repository (previous `2.1.0
 - **GPS search for `list_delivery_points`** — optional `latitude` / `longitude` / `radius_km` filter and sort pickup points by client-side haversine distance (annotates each result with `координаты` and `расстояние_км`). Makes the README "nearest pickup point" demo work.
 - **Input validation** — `calculate_tariff`, `calculate_tariff_list`, and `create_order` now require `code` or `postal_code` for each location up front, with an actionable error.
 - **`src/server.ts`** — the server is now a pure, importable factory; `src/index.ts` is a thin runtime entry point.
-- **Tooling** — ESLint (flat config) + Prettier, `lint` / `format` scripts; CI now runs `lint`, `typecheck`, and the e2e smoke test across Node 18 / 20 / 22.
+- **Tooling** — ESLint (flat config) + Prettier, `lint` / `format` scripts; CI now runs `lint`, `typecheck`, and the e2e smoke test.
+
+### Changed
+- **Node 20+ required** (`engines.node` `>=18` → `>=20`). The test toolchain (Vitest 4) needs `util.styleText`, available from Node 20.12; Node 18 is end-of-life. CI matrix is now Node 20 / 22.
 
 ## [2.1.0]
 - 16 tools (added `list_orders`, `delete_webhook`). Tagged in git but not published to npm.
