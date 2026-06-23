@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { assertLocationTarget } from "../validation.js";
 import type { TariffResult } from "../types.js";
 
 export const calculateTariffSchema = z.object({
@@ -44,6 +45,9 @@ export const calculateTariffListSchema = z.object({
 export async function handleCalculateTariffList(
   params: z.infer<typeof calculateTariffListSchema>
 ): Promise<string> {
+  assertLocationTarget(params.from_location, "Место отправления");
+  assertLocationTarget(params.to_location, "Место назначения");
+
   const result = (await getClient().post("/calculator/tarifflist", params)) as {
     errors?: Array<{ code: string; message: string }>;
     tariff_codes?: Array<{
@@ -76,6 +80,9 @@ export async function handleCalculateTariffList(
 }
 
 export async function handleCalculateTariff(params: z.infer<typeof calculateTariffSchema>): Promise<string> {
+  assertLocationTarget(params.from_location, "Место отправления");
+  assertLocationTarget(params.to_location, "Место назначения");
+
   const result = (await getClient().post("/calculator/tariff", params)) as TariffResult;
 
   if (result.errors && result.errors.length > 0) {

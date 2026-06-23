@@ -1,6 +1,6 @@
 {
   "name": "@theyahia/cdek-mcp",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "MCP server for CDEK delivery API — 16 tools: calculate, orders, courier pickup, tracking, PVZ, print, webhooks. OAuth2 auth.",
   "type": "module",
   "main": "dist/index.js",
@@ -14,26 +14,33 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "lint": "eslint src",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@theyahia/mcp-core": "workspace:*",
+    "@theyahia/mcp-core": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "express": "^5.2.1",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.2",
     "tsx": "^4.19.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.20.0",
     "vitest": "^4.1.2"
   },
   "publishConfig": { "access": "public" },
   "mcpName": "io.github.theYahia/cdek-mcp",
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "claude", "ai", "russian-api", "cdek", "delivery", "shipping", "logistics"],
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/theYahia/mcp-servers.git", "directory": "servers/cdek" },
+  "repository": { "type": "git", "url": "https://github.com/theYahia/cdek-mcp.git" },
+  "bugs": { "url": "https://github.com/theYahia/cdek-mcp/issues" },
+  "homepage": "https://github.com/theYahia/cdek-mcp#readme",
   "author": "theYahia (https://github.com/theYahia)"
 }

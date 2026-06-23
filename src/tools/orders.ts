@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { assertLocationTarget } from "../validation.js";
 import type { CdekOrder } from "../types.js";
 
 export const createOrderSchema = z.object({
@@ -81,6 +82,9 @@ export async function handleListOrders(
 }
 
 export async function handleCreateOrder(params: z.infer<typeof createOrderSchema>): Promise<string> {
+  assertLocationTarget(params.from_location, "Место отправления");
+  assertLocationTarget(params.to_location, "Место назначения");
+
   const result = (await getClient().post("/orders", params)) as CdekOrder;
 
   if (result.errors && result.errors.length > 0) {

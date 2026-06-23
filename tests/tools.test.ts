@@ -292,38 +292,71 @@ describe("get_regions", () => {
 describe("list_delivery_points with GPS", () => {
   afterEach(() => vi.clearAllMocks());
 
-  it("passes lat/lng/radius to query", async () => {
-    mockGet.mockResolvedValueOnce([
-      {
-        code: "MSK-002",
-        name: "ПВЗ рядом",
-        type: "PVZ",
-        location: { city: "Москва", address: "ул. Тверская, 5", country_code: "RU", region_code: 77, city_code: 44, longitude: 37.61, latitude: 55.76 },
-        owner_code: "cdek",
-        work_time: "10:00-20:00",
-        is_dressing_room: false,
-        have_cash: true,
-        have_cashless: true,
-      },
-    ]);
+  const near = {
+    code: "MSK-near",
+    name: "ПВЗ рядом",
+    type: "PVZ",
+    location: { city: "Москва", address: "ул. Тверская, 1", country_code: "RU", region_code: 77, city_code: 44, longitude: 37.6210, latitude: 55.7540 },
+    owner_code: "cdek",
+    work_time: "10:00-20:00",
+    is_dressing_room: true,
+    have_cash: true,
+    have_cashless: true,
+  };
+  const far = {
+    code: "MSK-far",
+    name: "ПВЗ далеко",
+    type: "PVZ",
+    location: { city: "Москва", address: "МКАД, 50", country_code: "RU", region_code: 77, city_code: 44, longitude: 37.9, latitude: 55.5 },
+    owner_code: "cdek",
+    work_time: "10:00-20:00",
+    is_dressing_room: false,
+    have_cash: true,
+    have_cashless: true,
+  };
+
+  it("filters by radius, sorts by distance, and never forwards geo params to CDEK", async () => {
+    mockGet.mockResolvedValueOnce([far, near]); // intentionally unsorted
 
     const result = await handleListDeliveryPoints({
+      city_code: 44,
       latitude: 55.7539,
       longitude: 37.6208,
-      radius: 5,
+      radius_km: 5,
       type: "ALL",
       country_code: "RU",
-      size: 10,
+      size: 50,
       page: 0,
     });
 
     const parsed = JSON.parse(result);
-    expect(parsed[0].координаты.широта).toBe(55.76);
-    expect(mockGet).toHaveBeenCalledWith("/deliverypoints", expect.objectContaining({
-      latitude: "55.7539",
-      longitude: "37.6208",
-      radius: "5",
-    }));
+    // Only the nearby point is within 5 km; the far one (~30 km) is filtered out.
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].код).toBe("MSK-near");
+    expect(parsed[0].координаты.широта).toBe(55.7540);
+    expect(typeof parsed[0].расстояние_км).toBe("number");
+
+    // Geo filtering is client-side: lat/lng/radius must NOT reach the CDEK query.
+    const [path, query] = mockGet.mock.calls[0];
+    expect(path).toBe("/deliverypoints");
+    expect(query).not.toHaveProperty("latitude");
+    expect(query).not.toHaveProperty("longitude");
+    expect(query).not.toHaveProperty("radius");
+    expect(query).not.toHaveProperty("radius_km");
+    expect(query.city_code).toBe("44");
+  });
+
+  it("rejects partial geo params (needs all three)", async () => {
+    await expect(
+      handleListDeliveryPoints({
+        city_code: 44,
+        latitude: 55.7539,
+        type: "ALL",
+        country_code: "RU",
+        size: 50,
+        page: 0,
+      }),
+    ).rejects.toThrow(/гео-поиск/);
   });
 });
 

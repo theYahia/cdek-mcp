@@ -141,21 +141,20 @@ Get your API keys: [CDEK Dashboard](https://lk.cdek.ru) > Integration > API Keys
 
 ## Sandbox Mode
 
-Set `CDEK_SANDBOX=true` to use the CDEK test environment. Sandbox uses test credentials and the `api.edu.cdek.ru` endpoint.
+Set `CDEK_SANDBOX=true` to use the CDEK test environment (`api.edu.cdek.ru`). Production uses `api.cdek.ru`.
 
-Test credentials for sandbox:
+CDEK publishes a shared sandbox account for integration testing:
 - Client ID: `EMscd6r9JnFiQ3bLoyjJY6eM78JrJceI`
 - Client Secret: `PjLZkKBHEiLK3YsjtNrt3TGNG0ahs3kh`
 
-Production uses `api.cdek.ru`.
+> ⚠️ CDEK rotates this shared test account from time to time. If you get `OAuth token error (HTTP 401) … invalid_client`, the public pair has been rotated — request your own sandbox keys from the CDEK integration dashboard ([lk.cdek.ru](https://lk.cdek.ru) → Integration → API Keys).
 
 ## Authentication
 
-OAuth 2.0 Client Credentials flow. TokenManager handles:
+OAuth 2.0 Client Credentials flow, handled by the `OAuthStrategy` in [`@theyahia/mcp-core`](https://www.npmjs.com/package/@theyahia/mcp-core):
 - Automatic token acquisition on first request
-- Token caching (3600s TTL)
-- Proactive refresh 60s before expiry
-- Concurrent request deduplication
+- Token caching with proactive refresh shortly before expiry
+- Concurrent request deduplication (a single in-flight token refresh is shared)
 - Automatic retry on 401 with token invalidation
 
 ## E-commerce Stack
@@ -175,7 +174,7 @@ Part of the [russian-mcp](https://github.com/theYahia?tab=repositories&q=mcp) se
    Uses `get_cities` to find city codes, then `calculate_tariff_list` to compare all available tariffs.
 
 2. **"Find the nearest CDEK pickup point to Red Square"**
-   Uses `list_delivery_points` with GPS coordinates (latitude: 55.7539, longitude: 37.6208) to find nearby locations.
+   Uses `get_cities` to resolve the Moscow `city_code`, then `list_delivery_points` with `latitude: 55.7539`, `longitude: 37.6208`, `radius_km: 5` — results are filtered to the radius and sorted by distance (each annotated with `координаты` and `расстояние_км`).
 
 3. **"Create an order to send a book from Kazan to Novosibirsk, schedule courier pickup, and print the receipt"**
    Uses `create_order`, then `create_courier_pickup` to schedule collection, and `print_receipt` for the waybill.
@@ -186,9 +185,24 @@ Part of the [russian-mcp](https://github.com/theYahia?tab=repositories&q=mcp) se
 git clone https://github.com/theYahia/cdek-mcp.git
 cd cdek-mcp
 npm install
-npm run build
-npm test
+
+npm run lint        # ESLint (flat config)
+npm run typecheck   # tsc --noEmit
+npm run build       # emit dist/
+npm test            # unit tests (vitest)
+npm run test:e2e    # e2e smoke test (lists tools, no real credentials)
 ```
+
+Run the server locally against the CDEK sandbox (`api.edu.cdek.ru`) — use the shared test pair from [Sandbox Mode](#sandbox-mode) or your own sandbox keys:
+
+```bash
+CDEK_SANDBOX=true \
+CDEK_CLIENT_ID=<YOUR_SANDBOX_CLIENT_ID> \
+CDEK_CLIENT_SECRET=<YOUR_SANDBOX_CLIENT_SECRET> \
+npm run dev
+```
+
+See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
 ## License
 
