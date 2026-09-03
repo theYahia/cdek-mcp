@@ -8,57 +8,57 @@
 
 ![Демонстрация: вопрос «сколько стоит и как долго везти 2 кг из Москвы в Казань» — агент вызывает calculate_tariff_list и отвечает таблицей тарифов](https://raw.githubusercontent.com/theYahia/WWmcp/main/servers/cdek/assets/demo.svg)
 
-## Tools (16)
+## Инструменты (16)
 
-### Tariffs
-| Tool | Description |
+### Тарифы
+| Инструмент | Описание |
 |------|-------------|
-| `calculate_tariff` | Calculate delivery cost and time for a specific tariff |
-| `calculate_tariff_list` | Get all available tariffs with prices for a route |
+| `calculate_tariff` | Рассчитать стоимость и срок доставки по конкретному тарифу |
+| `calculate_tariff_list` | Все доступные тарифы с ценами по маршруту |
 
-### Orders
-| Tool | Description |
+### Заказы
+| Инструмент | Описание |
 |------|-------------|
-| `create_order` | Create a delivery order with sender, recipient, packages |
-| `get_order` | Get order details and status by UUID |
-| `delete_order` | Cancel/delete an order by UUID |
-| `list_orders` | Search/filter orders by date range, IM number, or CDEK waybill |
+| `create_order` | Создать заказ на доставку с отправителем, получателем и местами |
+| `get_order` | Детали и статус заказа по UUID |
+| `delete_order` | Отменить или удалить заказ по UUID |
+| `list_orders` | Поиск и фильтрация заказов по периоду, номеру ИМ или накладной СДЭК |
 
-### Tracking
-| Tool | Description |
+### Трекинг
+| Инструмент | Описание |
 |------|-------------|
-| `track_shipment` | Track shipment by CDEK waybill number |
+| `track_shipment` | Отследить отправление по номеру накладной СДЭК |
 
-### Locations
-| Tool | Description |
+### География
+| Инструмент | Описание |
 |------|-------------|
-| `get_cities` | Search city directory by name, postal code, or country |
-| `get_regions` | Search region directory by country or name |
-| `list_delivery_points` | Find pickup points and parcel lockers by city or GPS coordinates |
+| `get_cities` | Поиск по справочнику городов — по названию, индексу или стране |
+| `get_regions` | Поиск по справочнику регионов — по стране или названию |
+| `list_delivery_points` | Найти пункты выдачи и постаматы по городу или GPS-координатам |
 
-### Barcode & Print
-| Tool | Description |
+### Штрихкоды и печать
+| Инструмент | Описание |
 |------|-------------|
-| `generate_barcode` | Generate barcode/label for an order |
-| `print_receipt` | Generate receipt/waybill PDF for an order |
+| `generate_barcode` | Сформировать штрихкод или этикетку для заказа |
+| `print_receipt` | Сформировать PDF квитанции или накладной по заказу |
 
-### Courier Pickup
-| Tool | Description |
+### Вызов курьера
+| Инструмент | Описание |
 |------|-------------|
-| `create_courier_pickup` | Schedule a courier pickup for an order |
-| `get_courier_pickup` | Check courier pickup request status |
+| `create_courier_pickup` | Заказать забор груза курьером по заказу |
+| `get_courier_pickup` | Проверить статус заявки на вызов курьера |
 
-### Webhooks
-| Tool | Description |
+### Вебхуки
+| Инструмент | Описание |
 |------|-------------|
-| `create_webhook` | Register webhook for order status updates or delivery photos |
-| `delete_webhook` | Remove a webhook subscription by UUID |
+| `create_webhook` | Зарегистрировать вебхук на смену статуса заказа или фото доставки |
+| `delete_webhook` | Удалить подписку на вебхук по UUID |
 
-## Quick Start
+## Быстрый старт
 
 ### Claude Desktop
 
-`~/.config/claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+`~/.config/claude/claude_desktop_config.json` (macOS) или `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -78,7 +78,7 @@
 
 ### Cursor / Windsurf
 
-`.cursor/mcp.json` or `.windsurf/mcp.json`:
+`.cursor/mcp.json` или `.windsurf/mcp.json`:
 
 ```json
 {
@@ -116,72 +116,72 @@
 }
 ```
 
-### Streamable HTTP Transport
+### Транспорт Streamable HTTP
 
-For web deployments, use the `--http` flag or `HTTP_PORT` env var:
+Для веб-развёртываний используйте флаг `--http` или переменную `HTTP_PORT`:
 
 ```bash
 HTTP_PORT=3000 npx @theyahia/cdek-mcp --http
 ```
 
-Endpoints:
+Эндпоинты:
 - `POST /mcp` — MCP JSON-RPC
-- `GET /mcp` — SSE stream
-- `DELETE /mcp` — session termination
-- `GET /health` — health check
+- `GET /mcp` — SSE-поток
+- `DELETE /mcp` — завершение сессии
+- `GET /health` — проверка состояния
 
-## Environment Variables
+## Переменные окружения
 
-| Variable | Required | Description |
+| Переменная | Обяз. | Описание |
 |----------|----------|-------------|
-| `CDEK_CLIENT_ID` | Yes | Client ID from CDEK dashboard |
-| `CDEK_CLIENT_SECRET` | Yes | Client Secret from CDEK dashboard |
-| `CDEK_SANDBOX` | No | `true` to use sandbox (api.edu.cdek.ru) |
-| `HTTP_PORT` | No | Port for HTTP transport (enables HTTP mode) |
+| `CDEK_CLIENT_ID` | да | Client ID из личного кабинета СДЭК |
+| `CDEK_CLIENT_SECRET` | да | Client Secret из личного кабинета СДЭК |
+| `CDEK_SANDBOX` | нет | `true` — работать в песочнице (api.edu.cdek.ru) |
+| `HTTP_PORT` | нет | Порт HTTP-транспорта (включает HTTP-режим) |
 
-Get your API keys: [CDEK Dashboard](https://lk.cdek.ru) > Integration > API Keys.
+Где взять ключи API: [личный кабинет СДЭК](https://lk.cdek.ru) → Интеграция → Ключи API.
 
-## Sandbox Mode
+## Режим песочницы
 
-Set `CDEK_SANDBOX=true` to use the CDEK test environment (`api.edu.cdek.ru`). Production uses `api.cdek.ru`.
+Задайте `CDEK_SANDBOX=true`, чтобы работать с тестовым контуром СДЭК (`api.edu.cdek.ru`). Боевой контур — `api.cdek.ru`.
 
-CDEK publishes a shared sandbox account for integration testing:
+СДЭК публикует общий тестовый аккаунт для интеграционных проверок:
 - Client ID: `EMscd6r9JnFiQ3bLoyjJY6eM78JrJceI`
 - Client Secret: `PjLZkKBHEiLK3YsjtNrt3TGNG0ahs3kh`
 
-> ⚠️ CDEK rotates this shared test account from time to time. If you get `OAuth token error (HTTP 401) … invalid_client`, the public pair has been rotated — request your own sandbox keys from the CDEK integration dashboard ([lk.cdek.ru](https://lk.cdek.ru) → Integration → API Keys).
+> ⚠️ СДЭК время от времени меняет этот общий тестовый аккаунт. Если вы получили `OAuth token error (HTTP 401) … invalid_client`, публичная пара уже сменилась — запросите собственные ключи песочницы в кабинете интеграции ([lk.cdek.ru](https://lk.cdek.ru) → Интеграция → Ключи API).
 
-## Authentication
+## Авторизация
 
-OAuth 2.0 Client Credentials flow, handled by the `OAuthStrategy` in [`@theyahia/mcp-core`](https://www.npmjs.com/package/@theyahia/mcp-core):
-- Automatic token acquisition on first request
-- Token caching with proactive refresh shortly before expiry
-- Concurrent request deduplication (a single in-flight token refresh is shared)
-- Automatic retry on 401 with token invalidation
+OAuth 2.0, поток Client Credentials, реализован в `OAuthStrategy` из [`@theyahia/mcp-core`](https://www.npmjs.com/package/@theyahia/mcp-core):
+- Токен запрашивается автоматически при первом обращении
+- Кэширование токена с упреждающим обновлением незадолго до истечения
+- Дедупликация параллельных запросов (одно обновление токена делится между всеми)
+- Автоматический повтор на 401 со сбросом токена
 
-## E-commerce Stack
+## E-commerce-стек
 
-Pair with other WWmcp servers for a complete e-commerce AI stack:
+Соберите полный ИИ-стек для интернет-магазина вместе с другими серверами WWmcp:
 
-| Server | Purpose |
-|--------|---------|
-| **cdek-mcp** | Shipping & logistics |
-| [dadata-mcp](https://github.com/theYahia/dadata-mcp) | Address validation, company lookup |
+| Сервер | Назначение |
+|--------|-------------|
+| **cdek-mcp** | Доставка и логистика |
+| [dadata-mcp](https://github.com/theYahia/dadata-mcp) | Проверка адресов, поиск компаний |
 
-Part of the [WWmcp](https://github.com/theYahia/WWmcp) series.
+Часть серии [WWmcp](https://github.com/theYahia/WWmcp).
 
-## Demo Prompts
+## Демо-промпты
 
-1. **"How much does it cost to ship a 2kg parcel from Moscow to Saint Petersburg?"**
-   Uses `get_cities` to find city codes, then `calculate_tariff_list` to compare all available tariffs.
+1. **«Сколько стоит отправить посылку 2 кг из Москвы в Санкт-Петербург?»**
+   Использует `get_cities` для поиска кодов городов, затем `calculate_tariff_list` для сравнения всех доступных тарифов.
 
-2. **"Find the nearest CDEK pickup point to Red Square"**
-   Uses `get_cities` to resolve the Moscow `city_code`, then `list_delivery_points` with `latitude: 55.7539`, `longitude: 37.6208`, `radius_km: 5` — results are filtered to the radius and sorted by distance (each annotated with `координаты` and `расстояние_км`).
+2. **«Найди ближайший пункт выдачи СДЭК к Красной площади»**
+   Использует `get_cities`, чтобы получить `city_code` Москвы, затем `list_delivery_points` с `latitude: 55.7539`, `longitude: 37.6208`, `radius_km: 5` — результаты фильтруются по радиусу и сортируются по расстоянию (у каждого есть поля `координаты` и `расстояние_км`).
 
-3. **"Create an order to send a book from Kazan to Novosibirsk, schedule courier pickup, and print the receipt"**
-   Uses `create_order`, then `create_courier_pickup` to schedule collection, and `print_receipt` for the waybill.
+3. **«Создай заказ на отправку книги из Казани в Новосибирск, вызови курьера и распечатай квитанцию»**
+   Использует `create_order`, затем `create_courier_pickup` для забора груза и `print_receipt` для накладной.
 
-## Development
+## Разработка
 
 ```bash
 git clone https://github.com/theYahia/cdek-mcp.git
@@ -190,12 +190,12 @@ npm install
 
 npm run lint        # ESLint (flat config)
 npm run typecheck   # tsc --noEmit
-npm run build       # emit dist/
-npm test            # unit tests (vitest)
-npm run test:e2e    # e2e smoke test (lists tools, no real credentials)
+npm run build       # сборка в dist/
+npm test            # юнит-тесты (vitest)
+npm run test:e2e    # e2e smoke-тест (перечисляет инструменты, без реальных ключей)
 ```
 
-Run the server locally against the CDEK sandbox (`api.edu.cdek.ru`) — use the shared test pair from [Sandbox Mode](#sandbox-mode) or your own sandbox keys:
+Запуск сервера локально против песочницы СДЭК (`api.edu.cdek.ru`) — с общей тестовой парой из раздела [Режим песочницы](#режим-песочницы) или со своими ключами:
 
 ```bash
 CDEK_SANDBOX=true \
@@ -204,9 +204,9 @@ CDEK_CLIENT_SECRET=<YOUR_SANDBOX_CLIENT_SECRET> \
 npm run dev
 ```
 
-See [CHANGELOG.md](./CHANGELOG.md) for release notes.
+Заметки о релизах — в [CHANGELOG.md](./CHANGELOG.md).
 
-## License
+## Лицензия
 
 MIT
 
