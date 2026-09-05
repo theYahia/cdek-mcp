@@ -1,3 +1,17 @@
+> ## 🗄 Репозиторий заархивирован
+>
+> Разработка переехала в **[theYahia/WWmcp](https://github.com/theYahia/WWmcp)** — монорепозиторий MCP-серверов для незападных API: СНГ, MENA, Африка, LATAM, Юго-Восточная Азия. Общее ядро `@theyahia/mcp-core`, единый CI, единый релизный конвейер.
+>
+> Актуальная версия того, что лежало здесь: [`servers/cdek/`](https://github.com/theYahia/WWmcp/tree/main/servers/cdek)
+>
+> Пакет в npm прежний — [`@theyahia/cdek-mcp`](https://www.npmjs.com/package/@theyahia/cdek-mcp), ставится и работает как раньше.
+> Здесь больше ничего не обновляется. Задачи и pull request'ы — в WWmcp.
+>
+> **Archived — development moved to [theYahia/WWmcp](https://github.com/theYahia/WWmcp),** a monorepo of MCP servers for non-Western APIs.
+> The current version of this package now lives at [`servers/cdek/`](https://github.com/theYahia/WWmcp/tree/main/servers/cdek).
+> The npm package [`@theyahia/cdek-mcp`](https://www.npmjs.com/package/@theyahia/cdek-mcp) is unchanged.
+> Please open issues and pull requests there.
+
 # MCP-сервер для СДЭК API — 16 инструментов для ИИ-агента: тарифы, заказы, трекинг
 
 Если вы искали, как подключить доставку СДЭК к Claude или другому ИИ-агенту, — этот сервер закрывает весь цикл отправления через CDEK API v2: расчёт тарифов и сроков, создание и отмена заказов, трекинг по накладной, поиск городов и пунктов выдачи, вызов курьера, штрихкоды и квитанции, вебхуки. Спрашиваете «сколько стоит и как долго везти 2 кг из Москвы в Казань» — получаете сравнение тарифов таблицей, а не форму на сайте. Работает и на тестовом контуре СДЭК, и на боевом.
